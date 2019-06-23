@@ -1,6 +1,10 @@
 ## xls2json
 
 ```bash
+pip3 install xls2json
+```
+
+```bash
 xls2json [--perentry] [--persheet] xls_input [output_path]
 ```
 
