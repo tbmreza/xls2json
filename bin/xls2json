@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+
+import xls2json
+xls2json.main()
