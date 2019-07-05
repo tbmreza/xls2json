@@ -2,11 +2,12 @@
 name = "xls2json"
 version = "0.1.2"
 description = "Convert XLS file to JSON."
+license = "MIT"
 authors = ["Reza Handzalah <rezahandzalah@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.4"
 xlrd = "^1.2"
 
 [tool.poetry.dev-dependencies]
