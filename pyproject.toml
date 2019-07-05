@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "xls2json"
-version = "0.1.1"
+version = "0.1.2"
 description = "Convert XLS file to JSON."
 authors = ["Reza Handzalah <rezahandzalah@gmail.com>"]
 readme = "README.md"

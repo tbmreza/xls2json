@@ -1,13 +1,11 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import argparse
 import json
 import os
 import xlrd
 from datetime import datetime
-# TODO auto detect cell type and write accordingly.
-# TODO handle XLS file with no table headers.
-# TODO handle non unique sheet names.
+
 def set_args():
     args = argparse.ArgumentParser()
     args.add_argument('--perentry', action='store_true', help='Output a JSON file per entry of XLS file.')
@@ -16,16 +14,46 @@ def set_args():
     args.add_argument('output_path', nargs='?', help='Specify output folder for --persheet mode.', default='output')
     return args.parse_args()
 
-def standard_path(apath):
+def standard_path(p):
     try:
-        if apath.endswith('/'):
-            return apath
+        if p.endswith('/'):
+            return p
         else:
-            return apath+'/'
+            return p+'/'
     
     except IndexError:
-        return apath
+        return p
     
+def read_type(c: 'sheet.cell_type'):            
+    '''
+    https://xlrd.readthedocs.io/en/latest/api.html#xlrd.sheet.Cell
+
+    XL_CELL_ERROR:
+    int representing internal Excel codes; 
+    for a text representation, refer to the supplied dictionary 
+    error_text_from_code
+
+    XL_CELL_BLANK:
+    empty string ''. 
+    Note: this type will appear only when open_workbook(..., formatting_info=True) is used.
+    '''
+    symbols = ('empty', 'text', 'number', 'date', 'bool', 'error', 'blank')
+    return symbols[c]
+
+def read_number(c):
+    '''Properly display int.'''
+    if str(c).endswith('.0'):
+        return int(c)
+    return c
+
+def read_date(c):
+    '''
+    Properly display date.
+    ISO 8601 format YYYY-MM-DD
+    '''
+    # https://xlrd.readthedocs.io/en/latest/api.html#xlrd.book.Book.datemode
+    return xlrd.xldate.xldate_as_datetime(xldate=c, datemode=0)
+
 def per_sheet():
     '''
     Read XLS file and write each sheet to a JSON file.
@@ -53,15 +81,20 @@ def per_sheet():
             number = sheet.cell_value(rowx=i, colx=0)
             helper_dict = {}
 
-            for j in range(0, nb_col):                
+            for j in range(0, nb_col):                                
                 key = sheet.cell_value(rowx=0, colx=j)
-                value = sheet.cell_value(rowx=i, colx=j)
-
-                if key.startswith('tgl'):
-                    value = datetime(*xlrd.xldate_as_tuple(value, book.datemode))
-                    value = str(value)[:-9]
                 
-                helper_dict[key] = value
+                # Read cell type before writing.
+                t = read_type(sheet.cell_type(rowx=i, colx=j))
+                v = sheet.cell_value(rowx=i, colx=j)
+                
+                if t == 'number':
+                    v = read_number(v)
+                if t == 'date':
+                    v = read_date(v)
+                    v = str(v)[:10]
+                                
+                helper_dict[key] = v                
                 data[number] = helper_dict
         
         # Save after finished reading a sheet.
@@ -97,13 +130,18 @@ def per_entry():
 
             for j in range(0, nb_col):                
                 key = sheet.cell_value(rowx=0, colx=j)
-                value = sheet.cell_value(rowx=i, colx=j)
-
-                if key.startswith('tgl'):
-                    value = datetime(*xlrd.xldate_as_tuple(value, book.datemode))
-                    value = str(value)[:-9]
-
-                helper_dict[key] = value
+                
+                # Read cell type before writing.
+                t = read_type(sheet.cell_type(rowx=i, colx=j))
+                v = sheet.cell_value(rowx=i, colx=j)
+                
+                if t == 'number':
+                    v = read_number(v)
+                if t == 'date':
+                    v = read_date(v)
+                    v = str(v)[:10]
+                                
+                helper_dict[key] = v
                 data[number] = helper_dict
 
             # Save after finished reading row (i)
@@ -140,13 +178,18 @@ def single_json():
 
             for j in range(0, nb_col):                
                 key = sheet.cell_value(rowx=0, colx=j)
-                value = sheet.cell_value(rowx=i, colx=j)
-
-                if key.startswith('tgl'):
-                    value = datetime(*xlrd.xldate_as_tuple(value, book.datemode))
-                    value = str(value)[:-9]
-
-                helper_dict[key] = value
+                
+                # Read cell type before writing.
+                t = read_type(sheet.cell_type(rowx=i, colx=j))
+                v = sheet.cell_value(rowx=i, colx=j)
+                
+                if t == 'number':
+                    v = read_number(v)
+                if t == 'date':
+                    v = read_date(v)
+                    v = str(v)[:10]
+                                
+                helper_dict[key] = v
 
             data[number] = helper_dict
 
@@ -164,9 +207,12 @@ def single_json():
 args = set_args()
 
 def main():
-    if args.perentry:
+    if args.perentry:        
         per_entry()
     elif args.persheet:
         per_sheet()
     else:
         single_json()
+
+if __name__ == '__main__':
+    main()

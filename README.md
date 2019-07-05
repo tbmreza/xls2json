@@ -1,19 +1,24 @@
 ## xls2json
 
 ```bash
+xls2json [--perentry] [--persheet] xls_input [output_path='output']
+```
+
+Take XLS file and write to JSON file(s) (single, one for every row, and/or one for every workbook sheet).
+
+### Requirements
+
+- xlrd
+
+### Installation
+
+```bash
 pip3 install xls2json
 ```
 
-```bash
-xls2json [--perentry] [--persheet] xls_input [output_path]
-```
+### TODO
 
-- **--perentry** Read XLS file and write a JSON file per entry of XLS file.
-- **--persheet** Read XLS file and write a JSON file per sheet of XLS file.
-- **default** Read XLS file and write to single JSON file.
+- compatibility with json2xls
 
-## TODO
 
-- auto detect cell type and write accordingly.
-- handle XLS file with no table headers.
-- handle non unique sheet names.
+<!-- [tbmreza-json2xls]() -->
